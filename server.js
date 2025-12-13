@@ -7,7 +7,7 @@ const PORT = process.env.PORT || 3000;
 // Serve static files from public directory
 app.use(express.static('public'));
 
-// Proxy endpoint - fixed version
+// Proxy endpoint - this is the key fix
 app.all('/proxy', (req, res) => {
     const targetUrl = req.query.url;
     
@@ -21,37 +21,9 @@ app.all('/proxy', (req, res) => {
         return res.status(400).send('Invalid target URL');
     }
     
-    const parsedUrl = new URL(targetUrl);
-    const target = `${parsedUrl.protocol}//${parsedUrl.host}`;
-    const path = parsedUrl.pathname + parsedUrl.search;
-    
     // Create proxy middleware
     const proxy = createProxyMiddleware({
-        target: target,
+        target: targetUrl,
         changeOrigin: true,
-        pathRewrite: {
-            [`^/proxy$`]: path  // Rewrite /proxy to the actual path
-        },
         onProxyReq: (proxyReq, req, res) => {
-            proxyReq.setHeader('X-Forwarded-For', req.connection.remoteAddress);
-        },
-        onProxyRes: (proxyRes, req, res) => {
-            delete proxyRes.headers['access-control-allow-origin'];
-            delete proxyRes.headers['content-security-policy'];
-        }
-    });
-    
-    proxy(req, res, () => {});
-});
-
-// Health check endpoint
-app.get('/', (req, res) => {
-    res.send(`
-        <h1>Proxy Server Running</h1>
-        <p>Use /proxy?url=TARGET_URL to access blocked content</p>
-    `);
-});
-
-app.listen(PORT, () => {
-    console.log(`Proxy server running on port ${PORT}`);
-});
+            proxyReq.setHeader('X-Forwarded-For', req
