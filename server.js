@@ -26,3 +26,32 @@ app.all('/proxy', (req, res) => {
     const path = parsedUrl.pathname + parsedUrl.search;
     
     // Create proxy middleware
+    const proxy = createProxyMiddleware({
+        target: target,
+        changeOrigin: true,
+        pathRewrite: {
+            [`^/proxy$`]: path  // Rewrite /proxy to the actual path
+        },
+        onProxyReq: (proxyReq, req, res) => {
+            proxyReq.setHeader('X-Forwarded-For', req.connection.remoteAddress);
+        },
+        onProxyRes: (proxyRes, req, res) => {
+            delete proxyRes.headers['access-control-allow-origin'];
+            delete proxyRes.headers['content-security-policy'];
+        }
+    });
+    
+    proxy(req, res, () => {});
+});
+
+// Health check endpoint
+app.get('/', (req, res) => {
+    res.send(`
+        <h1>Proxy Server Running</h1>
+        <p>Use /proxy?url=TARGET_URL to access blocked content</p>
+    `);
+});
+
+app.listen(PORT, () => {
+    console.log(`Proxy server running on port ${PORT}`);
+});
