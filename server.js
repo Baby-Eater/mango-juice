@@ -7,7 +7,7 @@ const PORT = process.env.PORT || 3000;
 // Serve static files from public directory
 app.use(express.static('public'));
 
-// Proxy endpoint - this is the key fix
+// Proxy endpoint
 app.all('/proxy', (req, res) => {
     const targetUrl = req.query.url;
     
@@ -26,4 +26,25 @@ app.all('/proxy', (req, res) => {
         target: targetUrl,
         changeOrigin: true,
         onProxyReq: (proxyReq, req, res) => {
-            proxyReq.setHeader('X-Forwarded-For', req
+            proxyReq.setHeader('X-Forwarded-For', req.connection.remoteAddress);
+        },
+        onProxyRes: (proxyRes, req, res) => {
+            delete proxyRes.headers['access-control-allow-origin'];
+            delete proxyRes.headers['content-security-policy'];
+        }
+    });
+    
+    proxy(req, res, () => {});
+});
+
+// Health check endpoint
+app.get('/', (req, res) => {
+    res.send(`
+        <h1>Proxy Server Running</h1>
+        <p>Use /proxy?url=TARGET_URL to access blocked content</p>
+    `);
+});
+
+app.listen(PORT, () => {
+    console.log(`Proxy server running on port ${PORT}`);
+});
