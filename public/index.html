@@ -115,8 +115,14 @@
                 return;
             }
             
-            const proxyUrl = `/proxy?url=${encodeURIComponent(targetUrl)}`;
-            resultUrl.textContent = `Proxying: ${targetUrl}`;
+            // Make sure URL starts with http:// or https://
+            let fullUrl = targetUrl;
+            if (!fullUrl.startsWith('http://') && !fullUrl.startsWith('https://')) {
+                fullUrl = 'https://' + fullUrl;
+            }
+            
+            const proxyUrl = `/proxy?url=${encodeURIComponent(fullUrl)}`;
+            resultUrl.textContent = `Proxying: ${fullUrl}`;
             proxyFrame.src = proxyUrl;
             
             resultContainer.style.display = 'block';
@@ -126,5 +132,4 @@
             document.getElementById('access-btn').click();
         };
     </script>
-</body>
-</html>
+</body
