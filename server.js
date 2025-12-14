@@ -71,10 +71,10 @@ app.get('/fetch', async (req, res) => {
         
         res.send(response.data);
     } catch (error) {
-        res.status(500).send(\`Error fetching content: \${error.message}\`);
+        res.status(500).send('Error fetching content: ' + error.message);
     }
 });
 
 app.listen(PORT, () => {
-    console.log(\`Server running on port \${PORT}\`);
+    console.log('Server running on port ' + PORT);
 });
